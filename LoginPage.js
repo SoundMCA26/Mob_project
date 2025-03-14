@@ -1,101 +1,146 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { supabase } from './supabaseclient';
 
-const LoginPage = ({ navigation }) => {
+export default function LoginPage({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false); // Toggle between login & signup
 
-  const handleLogin = () => {
-    if (email && password) {
-      navigation.navigate('MainTabs'); // ✅ FIXED NAVIGATION
-    } else {
-      alert('Please enter valid credentials');
+  async function handleAuth() {
+    if (!email || !password || (isSignUp && (!username || !confirmPassword))) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
     }
-  };
+
+    if (isSignUp) {
+      if (password !== confirmPassword) {
+        Alert.alert('Error', 'Passwords do not match');
+        return;
+      }
+
+      // Sign Up Logic
+      const { data, error } = await supabase.auth.signUp({ email, password });
+
+      if (error) {
+        Alert.alert('Signup Failed', error.message);
+      } else {
+        const user = data?.user;
+        if (user) {
+          // Create profile in Supabase after signing up
+          await supabase
+            .from('profiles')
+            .insert([{ id: user.id, email, username }]);
+
+          Alert.alert('Success', 'Account created! Please log in.');
+          setIsSignUp(false); // Switch back to login mode
+        }
+      }
+    } else {
+      // Login Logic
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        Alert.alert('Login Failed', error.message);
+      } else {
+        Alert.alert('Success', 'Logged in!');
+        // Correct navigation to Profile via MainTabs
+        navigation.navigate('MainTabs', { screen: 'ProfilePage' });
+      }
+    }
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Login</Text>
+      <Text style={styles.header}>{isSignUp ? 'Create Account' : 'Login'}</Text>
 
-      {/* Email Input */}
+      {isSignUp && (
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+        />
+      )}
+
       <TextInput
         style={styles.input}
-        placeholder="Enter your email"
+        placeholder="Email"
         value={email}
         onChangeText={setEmail}
-        keyboardType="email-address"
         autoCapitalize="none"
+        keyboardType="email-address"
       />
-
-      {/* Password Input */}
       <TextInput
         style={styles.input}
-        placeholder="Enter your password"
+        placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
-      {/* Login Button */}
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      {isSignUp && (
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+        />
+      )}
+
+      <TouchableOpacity style={styles.button} onPress={handleAuth}>
+        <Text style={styles.buttonText}>{isSignUp ? 'Sign Up' : 'Log In'}</Text>
       </TouchableOpacity>
 
-      {/* Skip Button */}
-      <TouchableOpacity 
-        style={[styles.button, styles.skipButton]} 
-        onPress={() => navigation.navigate('MainTabs')} // ✅ FIXED NAVIGATION
-      >
-        <Text style={[styles.buttonText, styles.skipButtonText]}>Skip</Text>
+      {/* Switch between Login & Sign Up */}
+      <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)}>
+        <Text style={styles.toggleText}>
+          {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 30,
-    backgroundColor: '#fff',
+    padding: 20,
+    backgroundColor: '#F8F9FA',
   },
   header: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
     textAlign: 'center',
+    marginBottom: 20,
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: '#ccc',
     borderWidth: 1,
-    marginBottom: 15,
-    paddingLeft: 10,
-    borderRadius: 5,
-    width: '100%',
-    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#1DB954',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 5,
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 8,
     alignItems: 'center',
     marginBottom: 10,
-    width: '100%',
   },
   buttonText: {
-    color: 'white',
-    fontSize: 16,
+    color: '#fff',
     fontWeight: 'bold',
   },
-  skipButton: {
-    backgroundColor: 'gray',
-  },
-  skipButtonText: {
-    color: 'white',
+  toggleText: {
+    textAlign: 'center',
+    color: '#007bff',
   },
 });
-
-export default LoginPage;
