@@ -1,0 +1,40 @@
+
+
+APPNO NAME   DOB           GENDER     SUPPLIES     TEST       INTERVIEW      AGGR      RND      BANK      SPLRANK
+55555 PETER  12-MAR-2006   1          1 
+55556 MARY   10-APR-2006   2          2
+
+
+TEST
+APPNO    NAME   TEST
+55555	PETER	80
+55556	MARY	77
+
+INTERVIEW
+APPNO    NAME     INTERVIEW
+55555    PETER	  90
+55556    MARY     75
+
+RANDOM
+APPNO   NAME    RND
+55555	PETER	900009
+55556	MARY	9001009
+
+The primary key of each relation is underlined. The value 1 for attribute GENDER in APPLICANT relation indicates ‘Male’ and the value 2 for the attribute GENDER in APPLICANT relation means ‘Female’. The value 1 for attribute SPLRES (Special Reservation) in APPLICANT relation indicates ‘Applicable’ and the value 2 for attribute SPLRES (Special Reservation) in APPLICANT relation indicates ‘Not Applicable’. Examination and interview are conducted by two different agencies. The attribute RND of RANDOM relation should be Unique.
+Perform the following using any two relational database management systems:
+
+i) populate the APPLICANT relation with 20 tuples, 12 tuples with no special reservation and 8 tuples with special reservation
+ii) Write a function to populate the value for RND in RANDOM relation.
+iii) Write a procedure to populate the values for TEST attribute in applicant relation and the TEST relation
+iv)Write a procedure to populate the values for INTERVIEW attribute in APPLICANT relation from the INTERVIEW relation
+v. Write a procedure to populate the values for RND attribute in APPLICANT relation from the RANDOM relation
+vi. Update the value of AGGR in APPLICANT relation (AGGR = 50% of Test Marks + 50% of Interview Marks)
+vii. Write a procedure to generate Rank.
+viii. Write a procedure to generate Special Reservation Rank
+
+Note:
+1. Special Reservation Rank should be generated for Applicants for whom Special Reservation is applicable.
+2. Tie Break AGGR first, TEST second, INTERVIEW third, DATE OF BIRTH fourth and finally RANDOM NUMBER
+
+
+

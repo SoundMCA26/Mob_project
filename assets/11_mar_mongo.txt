@@ -1,0 +1,143 @@
+use advdb
+
+Creating the DEPARTMENT Collection 
+
+db.createCollection("DEPARTMENT",
+  { validator: {
+      $jsonSchema: {
+        bsonType: "object",
+        required: ["DCODE", "DNAME"],
+        properties: {
+          DCODE: { bsonType: "string" }, // Changed to string as per insertion
+          DNAME: { bsonType: "string" }
+        }
+      }
+    }
+  }
+)
+
+db.DEPARTMENT.insertMany([ 
+    { DCODE: "D01", DNAME: "HR" }, 
+    { DCODE: "D02", DNAME: "Finance" }, 
+    { DCODE: "D03", DNAME: "IT" }, 
+    { DCODE: "D04", DNAME: "Marketing" } 
+]); 
+  
+
+Creating the EMPLOYEE Collection 
+
+
+db.createCollection("EMPLOYEE",
+  { validator: {
+      $jsonSchema: {
+        bsonType: "object",
+        required: ["ENO", "ENAME", "GENDER", "BASIC", "DCODE"],
+        properties: {
+          ENO: { bsonType: "number" },
+          ENAME: { bsonType: "string" },
+          DOB: { bsonType: "string" },
+          GENDER: { bsonType: "string" },
+          DOJ: { bsonType: "string" },
+          DESIGNATION: { bsonType: "string" },
+          BASIC: { bsonType: "number" },
+          DCODE: { bsonType: "string" },  // Changed to string as per insertion
+          PAN: { bsonType: "string" }
+        }
+      }
+    }
+  }
+)
+
+db.EMPLOYEE.insertMany([ 
+    { ENO: 101, ENAME: "Alice", DOB: "1990-01-15", GENDER: "F", DOJ: "2015-06-23", DESIGNATION: "Manager", BASIC: 75000, DCODE: "D01", PAN: "ABCDE1234F" }, 
+    { ENO: 102, ENAME: "Bob", DOB: "1985-05-10", GENDER: "M", DOJ: "2018-03-14", DESIGNATION: "Developer", BASIC: 60000, DCODE: "D03", PAN: "XYZ9876PQ" }, 
+    { ENO: 103, ENAME: "Charlie", DOB: "1992-07-20", GENDER: "M", DOJ: "2019-09-01", DESIGNATION: "Analyst", BASIC: 55000, DCODE: "D02", PAN: "PQR5678AB" }, 
+    { ENO: 104, ENAME: "David", DOB: "1995-02-25", GENDER: "M", DOJ: "2021-11-12", DESIGNATION: "Intern", BASIC: 30000, DCODE: "D04", PAN: "LMN2345CD" } 
+]); 
+  
+
+ 
+
+2️⃣ Query Selectors in MongoDB 
+
+Comparison Operators 
+
+// 1. Find employees whose BASIC salary is equal to 60000 
+db.EMPLOYEE.find({ BASIC: { $eq: 60000 } }); 
+ 
+// 2. Find employees whose BASIC salary is NOT equal to 60000 
+db.EMPLOYEE.find({ BASIC: { $ne: 60000 } }); 
+ 
+// 3. Find employees whose BASIC salary is greater than 50000 
+db.EMPLOYEE.find({ BASIC: { $gt: 50000 } }); 
+ 
+// 4. Find employees whose BASIC salary is less than 60000 
+db.EMPLOYEE.find({ BASIC: { $lt: 60000 } }); 
+ 
+// 5. Find employees whose BASIC salary is greater than or equal to 60000 
+db.EMPLOYEE.find({ BASIC: { $gte: 60000 } }); 
+ 
+// 6. Find employees whose BASIC salary is less than or equal to 55000 
+db.EMPLOYEE.find({ BASIC: { $lte: 55000 } }); 
+ 
+// 7. Find employees whose BASIC salary is NOT equal to 75000 
+db.EMPLOYEE.find({ BASIC: { $ne: 75000 } }); 
+ 
+// 8. Find employees whose BASIC salary is NOT in the given array (30000 and 60000) 
+db.EMPLOYEE.find({ BASIC: { $nin: [30000, 60000] } }); 
+
+
+// 9. Find employees whose BASIC salary is in the given array (30000 and 60000) 
+db.EMPLOYEE.find({ BASIC: { $in: [30000, 60000] } }); 
+  
+
+ 
+
+Logical Operators 
+
+// 1. Find employees who are either Managers or Analysts 
+db.EMPLOYEE.find({ $or: [{ DESIGNATION: "Manager" }, { DESIGNATION: "Analyst" }] }); 
+ 
+// 2. Find employees who are both Developers and have BASIC greater than 50000 
+db.EMPLOYEE.find({ $and: [{ DESIGNATION: "Developer" }, { BASIC: { $gt: 50000 } }] }); 
+ 
+// 3. Find employees who are neither Interns nor have a BASIC salary less than 50000 
+db.EMPLOYEE.find({ $nor: [{ DESIGNATION: "Intern" }, { BASIC: { $lt: 50000 } }] }); 
+ 
+// 4. Find employees whose designation is NOT "Manager" 
+db.EMPLOYEE.find({ DESIGNATION: { $not: { $eq: "Manager" } } }); 
+  
+
+ 
+
+Element Operators 
+
+// 1. Find employees who have a PAN number 
+db.EMPLOYEE.find({ PAN: { $exists: true } }); 
+ 
+// 2. Find employees where BASIC is of type number 
+db.EMPLOYEE.find({ BASIC: { $type: "number" } }); 
+  
+
+ 
+
+Evaluation Operators 
+
+// 1. Find employees where BASIC salary is a multiple of 5000 (Modulo operation) 
+db.EMPLOYEE.find({ BASIC: { $mod: [11, 0] } }); 
+ 
+// 2. Find employees whose names start with 'A' (Regex match)  with case insensitive
+db.EMPLOYEE.find({ ENAME: { $regex: "^A", $options: "i" } }); 
+ 
+//Find employees whose names start with 'A' (Regex match)  with case - sensitive
+db.EMPLOYEE.find({ ENAME: { $regex: "^a"} }); 
+
+// 3. Find employees where BASIC salary is greater than 50000 using `$expr` 
+db.EMPLOYEE.find({ $expr: { $gt: ["$BASIC", 50000] } }); 
+ 
+// 4. Find employees whose PAN number follows a pattern (Regex example) 
+db.EMPLOYEE.find({ PAN: { $regex: "^[A-Z]{5}[0-9]{4}[A-Z]$", $options: "i" } }); 
+ 
+// 5. Find employees using `$where` (JavaScript Expression) 
+db.EMPLOYEE.find({ $where: "this.BASIC > 50000 && this.GENDER == 'M'" }); 
+ 

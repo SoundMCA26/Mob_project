@@ -29,7 +29,7 @@ export default function FavoriteArtists() {
 
       if (fetchError) throw fetchError;
 
-      setFavorites(favoritesData);
+      setFavorites(favoritesData || []);
     } catch (error) {
       Alert.alert('Error', error.message);
       console.error('Fetch favorites failed:', error);
@@ -51,7 +51,7 @@ export default function FavoriteArtists() {
 
       if (error) throw error;
 
-      setSuggestions(data);
+      setSuggestions(data || []);
     } catch (error) {
       console.error('Fetch suggestions failed:', error);
     }
@@ -70,6 +70,16 @@ export default function FavoriteArtists() {
 
       if (!user) {
         Alert.alert('Error', 'User not found. Please log in.');
+        return;
+      }
+
+      // Check if the artist is already in favorites
+      const isAlreadyFavorite = favorites.some(
+        (fav) => fav.artist_name.toLowerCase() === artistName.toLowerCase()
+      );
+
+      if (isAlreadyFavorite) {
+        Alert.alert('Info', 'Artist is already in your favorites.');
         return;
       }
 

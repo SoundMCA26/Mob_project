@@ -33,6 +33,14 @@ const TaylorSwift = () => {
     });
   };
 
+  const merchItems = [
+    { id: '1', name: 'Red Tour Hoodie', price: 45, image: require('../assets/tay.jpg') },
+    { id: '2', name: 'Fearless Vinyl', price: 30, image: require('../assets/tay.jpg') },
+    { id: '3', name: '1989 Cap', price: 25, image: require('../assets/tay.jpg') },
+    { id: '4', name: 'Eras Tour Poster', price: 20, image: require('../assets/tay.jpg') },
+  ];
+  
+
   const removeFromCart = (item) => {
     setCart((prevCart) => {
       const newCart = { ...prevCart };

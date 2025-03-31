@@ -1,0 +1,111 @@
+- Object oriented database on itself was not a preferred option. 
+- So, Object oriented concepts are integrated in Relational databases to provide object relational DB's that incorporate the object oriented and relational properties. 
+- One such example is the use of XMLTYPE in Oracle.
+
+
+CREATING DB:***************************************************
+CREATE TABLE EMPLOYEE (
+  ENO NUMBER PRIMARY KEY,
+  EMPDATA XMLTYPE
+);
+
+INSERTING DATA:************************************************
+//XMLTYPE - enables you to store in any form.
+
+INSERT INTO EMPLOYEE VALUES(
+1010, '<EMPDATA><NAME>RAJALAKSHMI</NAME><BASIC>10000</BASIC><GENDER>F</GENDER></EMPDATA>');
+
+SELECT * FROM EMPLOYEE;
+
+INSERT INTO EMPLOYEE VALUES(
+1011, '<EMPDATA><NAME>RAASIKA</NAME><BASIC>10000</BASIC><DOB>24-MAR-2003</DOB><GENDER>F</GENDER></EMPDATA>');
+
+SELECT * FROM EMPLOYEE;
+
+INSERT INTO EMPLOYEE VALUES(
+1012, '<EMPDATA><NAME>JANANI</NAME><DCODE>102</DCODE><BASIC>10000</BASIC><DOB>23-JUL-2003</DOB><GENDER>F</GENDER><DESIGNATION>MANAGER</DESIGNATION></EMPDATA>');
+
+INSERT INTO EMPLOYEE VALUES(
+1013, '<EMPDATA><NAME>VETRI</NAME><DCODE>102</DCODE><BASIC>10000</BASIC><DOB>24-AUG-2003</DOB><GENDER>M</GENDER></EMPDATA>');
+
+INSERT INTO EMPLOYEE VALUES(
+1014, '<EMPDATA><NAME>UMESH</NAME><DCODE>101</DCODE><BASIC>10000</BASIC><DOB>27-FEB-2004</DOB><GENDER>M</GENDER></EMPDATA>');
+
+INSERT INTO EMPLOYEE VALUES(
+1015, '<EMPDATA><NAME>RAGUL</NAME><DCODE>101</DCODE><BASIC>10000</BASIC><DOB>04-APR-2003</DOB><GENDER>M</GENDER></EMPDATA>');
+
+DELETING DATA:***************************************************
+DELETE FROM EMPLOYEE WHERE ENO=1010;
+
+AGGREGATE FUNCTION:*********************************************
+- AVERAGE:
+SELECT AVG(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal())
+AS APPLE FROM EMPLOYEE E;
+
+- SUM: 
+SELECT SUM(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal())
+AS APPLE FROM EMPLOYEE E;
+
+- MAX:
+SELECT MAX(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal())
+AS APPLE FROM EMPLOYEE E;
+
+- ROUND OF TO 2 SIGNIFICANT DIGITS:
+SELECT ROUND( AVG(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal()),2)
+AS APPLE FROM EMPLOYEE E;
+
+GROUP BY:*******************************************************
+
+- DISPLAYING AVERAGE OF BASIC BASED ON GENDER:
+SELECT AVG(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal())
+AS APPLE FROM EMPLOYEE E
+GROUP BY (E.EMPDATA.extract('/EMPDATA/GENDER/text()').getStringVal());
+
+- DISPLAYING AVERAGE, GENDER BASED ON GENDER:
+SELECT AVG(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal()), (E.EMPDATA.extract('/EMPDATA/GENDER/text()').getStringVal())
+AS APPLE FROM EMPLOYEE E
+GROUP BY (E.EMPDATA.extract('/EMPDATA/GENDER/text()').getStringVal());
+
+- DISPLAYING COUNT, GENDER BASED ON GENDER:
+SELECT COUNT(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal()), (E.EMPDATA.extract('/EMPDATA/GENDER/text()').getStringVal())
+AS APPLE FROM EMPLOYEE E
+GROUP BY (E.EMPDATA.extract('/EMPDATA/GENDER/text()').getStringVal());
+
+- DISPLAYING SUM, GENDER BASED ON GENDER:
+SELECT SUM(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal()), (E.EMPDATA.extract('/EMPDATA/GENDER/text()').getStringVal())
+AS APPLE FROM EMPLOYEE E
+GROUP BY (E.EMPDATA.extract('/EMPDATA/GENDER/text()').getStringVal());
+
+
+- DISPLAYING EMPLOYEE COUNT BASED ON DCODE
+SELECT (E.EMPDATA.extract('/EMPDATA/DCODE/text()').getNumberVal()) AS DCODE, COUNT(*)
+FROM EMPLOYEE E
+GROUP BY(E.EMPDATA.EXTRACT('/EMPDATA/DCODE/text()').getNumberVal());
+
+- DISPLAYING EMPLOYEE SUM BASED ON DCODE
+SELECT (E.EMPDATA.extract('/EMPDATA/DCODE/text()').getNumberVal()) AS DCODE, SUM(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal())
+FROM EMPLOYEE E
+GROUP BY(E.EMPDATA.EXTRACT('/EMPDATA/DCODE/text()').getNumberVal());
+
+
+- DISPLAYING EMPLOYEE AVG BASED ON DCODE
+SELECT (E.EMPDATA.extract('/EMPDATA/DCODE/text()').getNumberVal()) AS DCODE, AVG(E.EMPDATA.extract('/EMPDATA/BASIC/text()').getNumberVal())
+FROM EMPLOYEE E
+GROUP BY(E.EMPDATA.EXTRACT('/EMPDATA/DCODE/text()').getNumberVal());
+
+
+UPDATING DATA:***************************************************
+UPDATE TABLE EMPLOYEE
+SET (E.EMPDATA.extract('/EMPDATA/DCODE/text()').getNumberVal()) = 102
+WHERE ENO = 1012;
+
+
+basic =! BASIC 
+example--->
+**********************************************
+INSERT INTO EMPLOYEE VALUES(
+1020, '<EMPDATA><NAME>LAKSHMI</NAME><basic>12000</basic><GENDER>F</GENDER></EMPDATA>');
+
+SELECT COUNT(E.EMPDATA.extract('/EMPDATA/basic/text()').getNumberVal())
+AS APPLE FROM EMPLOYEE E;
+

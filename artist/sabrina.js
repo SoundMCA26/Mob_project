@@ -7,6 +7,16 @@ import { FontAwesome } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
+
+const merchItems = [
+  { id: '1', name: 'Fragrance', price: 45, image: require('../assets/sabrina.png') },
+  { id: '2', name: 'Sabrina Posters', price: 30, image: require('../assets/sabrina.png') },
+  { id: '3', name: 'Hoodie', price: 25, image: require('../assets/sabrina.png') },
+  { id: '4', name: 'vinyl', price: 20, image: require('../assets/sabrina.png') },
+];
+
+
+
 const socialLinks = [
   { id: '1', name: 'Instagram', url: 'https://www.instagram.com/sabrinacarpenter/', icon: 'instagram' },
   { id: '2', name: 'YouTube', url: 'https://www.youtube.com/channel/UCPKWE1H6xhxwPlqUlKgHb_w', icon: 'youtube' },
