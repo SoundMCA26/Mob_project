@@ -20,6 +20,7 @@ const socialLinks = [
 const TaylorSwift = () => {
   const [activeTab, setActiveTab] = useState('merch');
   const [cart, setCart] = useState({});
+  const [yourOrders, setYourOrders] = useState([]);
 
   const addToCart = (item) => {
     setCart((prevCart) => {
@@ -28,11 +29,11 @@ const TaylorSwift = () => {
         newCart[item.id].quantity += 1;
       } else {
         newCart[item.id] = { ...item, quantity: 1 };
+        console.log("Added Order ID:", item.id);  // Logging the order ID
       }
       return newCart;
     });
   };
-
   const merchItems = [
     { id: '1', name: 'Red Tour Hoodie', price: 45, image: require('../assets/tay.jpg') },
     { id: '2', name: 'Fearless Vinyl', price: 30, image: require('../assets/tay.jpg') },
@@ -94,12 +95,23 @@ const TaylorSwift = () => {
   contentContainerStyle={{ paddingBottom: 20 }}
 />
 
-  
 
            {/* Cart Summary */}
            <View style={styles.cartSummary}>
             <Text style={styles.cartText}>Items in Cart: {totalItems}</Text>
             <Text style={styles.cartText}>Total: ${totalAmount}</Text>
+            {totalItems > 0 && (
+    <TouchableOpacity 
+      style={styles.proceedButton} 
+      onPress={() => {
+        setYourOrders([...yourOrders, ...Object.values(cart)]);  // Add cart items to orders
+        setCart({}); // Clear cart after purchase
+        console.log("Orders:", yourOrders); // Log the orders
+      }}
+    >
+      <Text style={styles.proceedButtonText}>Proceed to Buy</Text>
+    </TouchableOpacity>
+  )}
           </View>
         </View>
       );
@@ -273,6 +285,7 @@ const styles = StyleSheet.create({
   
   quantityButton: {
     backgroundColor: 'purple',
+    color: 'white',
     padding: 8,
     borderRadius: 5,
     marginHorizontal: 5,
@@ -281,8 +294,24 @@ const styles = StyleSheet.create({
   quantityText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'black',
   },
+
+  proceedButton: {
+    backgroundColor: '#1DB954',  // Spotify Green
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  
+  proceedButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  
   
   addButton: {
     marginTop: 10,

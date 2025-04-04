@@ -20,9 +20,10 @@ const ProfileScreen = () => {
   const [userId, setUserId] = useState(null);
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    async function fetchUserAndArtists() {
+    async function fetchUserData() {
       const { data: user, error } = await supabase.auth.getUser();
       if (error || !user?.user) {
         Alert.alert('Error', 'User not authenticated');
@@ -32,7 +33,7 @@ const ProfileScreen = () => {
 
       setUserId(user.user.id);
 
-      // Fetch username and avatar URL from the profiles table
+      // Fetch user profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('username, avatar_url')
@@ -41,32 +42,43 @@ const ProfileScreen = () => {
 
       if (profileError) {
         Alert.alert('Error', 'Failed to fetch user profile');
-        setUsername('Unknown User');
       } else {
         setUsername(profile?.username || 'Unknown User');
         setAvatarUrl(profile?.avatar_url || null);
       }
 
       // Fetch user's favorite artists
-      const { data, error: fetchError } = await supabase
+      const { data: favArtists, error: favError } = await supabase
         .from('user_favorites')
         .select('*')
         .eq('user_id', user.user.id);
 
-      if (fetchError) {
-        Alert.alert('Error', fetchError.message);
+      if (favError) {
+        Alert.alert('Error', favError.message);
       } else {
-        setArtists(data || []);
+        setArtists(favArtists || []);
+      }
+
+      // Fetch user orders
+      const { data: userOrders, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.user.id)
+        .order('created_at', { ascending: false });
+
+      if (orderError) {
+        Alert.alert('Error fetching orders', orderError.message);
+      } else {
+        setOrders(userOrders || []);
       }
 
       setLoading(false);
     }
 
-    fetchUserAndArtists();
+    fetchUserData();
   }, []);
 
-  // 🎵 Add or Remove Favorite Artist
-  async function handleFavoritePress(artistName) {
+  const handleFavoritePress = async (artistName) => {
     if (!artistName.trim()) {
       Alert.alert('Error', 'Artist name cannot be empty');
       return;
@@ -82,7 +94,6 @@ const ProfileScreen = () => {
     );
 
     if (existingArtist) {
-      // 🚫 Remove artist from favorites
       const { error } = await supabase
         .from('user_favorites')
         .delete()
@@ -96,7 +107,6 @@ const ProfileScreen = () => {
         Alert.alert('Removed', `${artistName} removed from favorites.`);
       }
     } else {
-      // ➕ Add new favorite artist
       const { data, error } = await supabase
         .from('user_favorites')
         .insert([{ user_id: userId, artist_name: artistName }])
@@ -112,7 +122,23 @@ const ProfileScreen = () => {
 
     setNewArtist('');
     setSuggestions([]);
-  }
+  };
+
+  const renderOrderItem = ({ item }) => (
+    <View style={styles.orderCard}>
+      {item.image_url && (
+        <Image source={{ uri: item.image_url }} style={styles.orderImage} />
+      )}
+      <View style={{ flex: 1 }}>
+        <Text style={styles.orderText}>{item.name}</Text>
+        <Text style={styles.orderSubText}>Price: ₹{item.price}</Text>
+        <Text style={styles.orderSubText}>Qty: {item.quantity}</Text>
+        <Text style={styles.orderSubText}>
+          Ordered on: {new Date(item.created_at).toLocaleDateString()}
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -120,23 +146,15 @@ const ProfileScreen = () => {
       <View style={styles.profileContainer}>
         <Image
           style={styles.profilePhoto}
-          source={
-            avatarUrl
-              ? { uri: avatarUrl }
-              : require('./assets/default.jpeg')
-          }
+          source={avatarUrl ? { uri: avatarUrl } : require('./assets/default.jpeg')}
         />
         <Text style={styles.username}>{username}</Text>
       </View>
 
+      {/* Favorite Artists */}
       <Text style={styles.header}>Favorite Artists</Text>
-
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#c4d9ff"
-          style={styles.loadingIndicator}
-        />
+        <ActivityIndicator size="large" color="#c4d9ff" style={styles.loadingIndicator} />
       ) : artists.length === 0 ? (
         <Text style={styles.emptyText}>No favorite artists yet.</Text>
       ) : (
@@ -154,7 +172,7 @@ const ProfileScreen = () => {
         />
       )}
 
-      {/* Add Artist Section */}
+      {/* Add Artist */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -163,29 +181,63 @@ const ProfileScreen = () => {
           value={newArtist}
           onChangeText={setNewArtist}
         />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => handleFavoritePress(newArtist)}
-        >
+        <TouchableOpacity style={styles.button} onPress={() => handleFavoritePress(newArtist)}>
           <Text style={styles.buttonText}>+ Add</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Suggestions */}
-      {suggestions.length > 0 && (
-        <FlatList
-          data={suggestions}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.suggestionItem}
-              onPress={() => handleFavoritePress(item)}
-            >
-              <Text style={styles.suggestionText}>{item}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      )}
+     {/* Orders Section */}
+<Text style={styles.header}>Your Orders</Text>
+{loading ? (
+  <ActivityIndicator size="large" color="#c4d9ff" style={styles.loadingIndicator} />
+) : orders.length === 0 ? (
+  <Text style={styles.emptyText}>No orders yet.</Text>
+) : (
+  <>
+  {/* Pending Orders */}
+<Text style={styles.subHeader}>Pending Orders</Text>
+{orders.filter(order => order.status?.toLowerCase() === 'pending').length === 0 ? (
+  <Text style={styles.emptyText}>No pending orders.</Text>
+) : (
+  <FlatList
+    data={orders.filter(order => order.status?.toLowerCase() === 'pending')}
+    keyExtractor={(item) => item.id.toString()}
+    renderItem={({ item }) => (
+      <View style={[styles.orderCard, { borderLeftColor: '#FFA500', borderLeftWidth: 5 }]}>
+        {item.image_url && (
+          <Image source={{ uri: item.image_url }} style={styles.orderImage} />
+        )}
+        <View style={{ flex: 1 }}>
+          <Text style={styles.orderText}>{item.name}</Text>
+          <Text style={styles.orderSubText}>Price: ₹{item.price}</Text>
+          <Text style={styles.orderSubText}>Qty: {item.quantity}</Text>
+          <Text style={[styles.orderSubText, { color: '#FFA500' }]}>⏳ Pending</Text>
+          <Text style={styles.orderSubText}>
+            Ordered on: {new Date(item.created_at).toLocaleDateString()}
+          </Text>
+        </View>
+      </View>
+    )}
+    style={{ marginBottom: 20 }}
+  />
+)}
+
+
+    {/* Completed Orders */}
+    <Text style={styles.subHeader}>Completed Orders</Text>
+    {orders.filter(order => order.status !== 'pending').length === 0 ? (
+      <Text style={styles.emptyText}>No completed orders.</Text>
+    ) : (
+      <FlatList
+        data={orders.filter(order => order.status !== 'pending')}
+        keyExtractor={(item) => item.id}
+        renderItem={renderOrderItem}
+        style={{ marginBottom: 20 }}
+      />
+    )}
+  </>
+)}
+
     </View>
   );
 };
@@ -217,7 +269,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginVertical: 10,
+    marginTop: 20,
+    marginBottom: 10,
   },
   artistCard: {
     backgroundColor: '#333333',
@@ -260,16 +313,29 @@ const styles = StyleSheet.create({
     color: '#AAAAAA',
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
-  suggestionItem: {
-    backgroundColor: '#2E2E2E',
+  orderCard: {
+    backgroundColor: '#2a2a2a',
+    flexDirection: 'row',
+    borderRadius: 8,
+    marginBottom: 12,
     padding: 10,
-    marginVertical: 5,
-    borderRadius: 5,
+    alignItems: 'center',
   },
-  suggestionText: {
-    color: '#FFFFFF',
+  orderImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  orderText: {
+    color: '#ffffff',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  orderSubText: {
+    color: '#cccccc',
+    fontSize: 14,
   },
 });
